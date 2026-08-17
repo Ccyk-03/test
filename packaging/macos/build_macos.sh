@@ -39,7 +39,7 @@ log "检查前端产物"
 [ -f ../../frontend/dist/index.html ] || die "前端未构建：请先 cd ../../frontend && npm install && npm run build"
 
 # 3. 下载并解压便携版 Python
-log "准备便携版 Python（$PY_ARCH）"
+log "准备便携版 Python (${PY_ARCH})"
 mkdir -p "$BUILD_DIR"
 if [ ! -x "$PY_DIR/bin/python3" ]; then
   curl -fL --retry 3 "$PY_URL" -o "$BUILD_DIR/$PY_TAR" || die "Python 下载失败：$PY_URL"
