@@ -16,11 +16,11 @@ VERSION="${VERSION:-1.0.0}"
 PY_RELEASE="20260814"
 PY_VERSION="3.12.14"
 ARCH=$(uname -m)
-case "$ARCH" in
-  arm64|aarch64) PY_ARCH="aarch64" ;;
-  x86_64)        PY_ARCH="x86_64" ;;
-  *) echo "不支持的架构：$ARCH"; exit 1 ;;
-esac
+if [ "$ARCH" = "x86_64" ]; then
+  PY_ARCH="x86_64"
+else
+  PY_ARCH="aarch64"
+fi
 PY_TAR="cpython-${PY_VERSION}+${PY_RELEASE}-${PY_ARCH}-apple-darwin-install_only.tar.gz"
 PY_URL="https://github.com/astral-sh/python-build-standalone/releases/download/${PY_RELEASE}/${PY_TAR}"
 
