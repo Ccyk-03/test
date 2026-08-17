@@ -1,0 +1,45 @@
+name: 构建 macOS 安装包
+
+on:
+  workflow_dispatch: {}   # 手动触发：网页上点「Run workflow」
+
+jobs:
+  build-macos:
+    name: 构建 macOS 安装包
+    strategy:
+      fail-fast: false
+      matrix:
+        include:
+          - runner: macos-14        # Apple 芯片 arm64
+            arch: AppleSilicon
+          - runner: macos-13        # Intel x86_64
+            arch: Intel
+    runs-on: ${{ matrix.runner }}
+
+    steps:
+      - name: 检出代码
+        uses: actions/checkout@v4
+
+      - name: 安装 Node.js
+        uses: actions/setup-node@v4
+        with:
+          node-version: '20'
+
+      - name: 构建前端
+        run: |
+          cd frontend
+          npm install
+          npm run build
+
+      - name: 构建 macOS 安装包（.pkg）
+        run: |
+          cd packaging/macos
+          chmod +x build_macos.sh postinstall.sh launcher.sh
+          ./build_macos.sh
+
+      - name: 上传安装包
+        uses: actions/upload-artifact@v4
+        with:
+          name: 抽卡师的魔法-${{ matrix.arch }}-安装包
+          path: packaging/macos/dist/*.pkg
+          if-no-files-found: error
