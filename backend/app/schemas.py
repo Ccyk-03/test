@@ -161,7 +161,7 @@ class UnitConfigOut(BaseModel):
 
 class UnitConfigUpdate(BaseModel):
     name: str = Field("", max_length=100)
-    default_template: str = Field(..., min_length=1, max_length=20000)
+    default_template: str = Field("", max_length=20000)  # 允许为空：默认不预填模板
     unit_instruction: str = Field("", max_length=20000)
 
 

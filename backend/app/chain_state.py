@@ -24,7 +24,8 @@ def resolve_base_template(db: Session, user_id: int, unit_no: int, conversation_
 
     链式关系按对话隔离：只引用「同一对话内」上一单元最近成功输出。
     单元 1 无基础模板（首次对话直接使用 s1 指令）；
-    单元 i(≥2) 优先取同一对话内上一单元最近成功输出，无则回退该单元默认模板。
+    单元 i(≥2) 优先取同一对话内上一单元最近成功输出，无则回退该单元默认模板
+    （默认模板默认为空；管理员可按需为某个单元配置自定义模板）。
     """
     # 单元 1（首次对话）：无基础模板
     if unit_no == 1:
@@ -46,9 +47,12 @@ def resolve_base_template(db: Session, user_id: int, unit_no: int, conversation_
     if last is not None and last.output_text:
         return last.output_text, "chained", unit_no - 1
 
-    # 无链式历史 → 回退该单元默认模板
+    # 无链式历史 → 回退该单元默认模板（可能为空）
     config = db.query(UnitConfig).filter(UnitConfig.unit_no == unit_no).one()
-    return config.default_template, "default", None
+    template = (config.default_template or "").strip()
+    if template:
+        return template, "default", None
+    return "", "none", None
 
 
 def get_global_instruction(db: Session, key: str = INSTRUCTION_S2_KEY) -> str:
