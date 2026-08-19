@@ -2,7 +2,8 @@
 
 链式递进优化机制（对话 1-6 对应单元 1-6）：
 - 单元 1（首次对话）：无基础模板（source='none'），使用 s1 指令；
-- 单元 i(≥2)（后续对话）：取「当前用户最近一次单元 i-1 的成功输出」T_{i-1} 作为基础模板
+- 单元 2：取单元 1 的最近成功输出 T1 作为基础模板（source='chained'），仍使用 s1 指令；
+- 单元 i(≥3)（后续对话）：取「当前用户最近一次单元 i-1 的成功输出」T_{i-1} 作为基础模板
   （source='chained'），使用 s2 指令；若无成功历史，回退该单元默认模板（source='default'）。
 - 修改流程（revise）：用户手动提供「上一次生成的最终提示词」（source='manual'），使用 s3 指令。
 
@@ -14,8 +15,8 @@ from sqlalchemy.orm import Session
 from app.models import AuditLog, GlobalConfig, UnitConfig
 
 # 调用指令的配置键（管理端可编辑）：s 系列 = 通用版，g 系列 = 竖屏 9:16 优化版（OpenRouter 专用）
-INSTRUCTION_S1_KEY = "global_instruction_s1"  # 首次对话（单元 1）
-INSTRUCTION_S2_KEY = "global_instruction_s2"  # 后续对话（单元 2-6）
+INSTRUCTION_S1_KEY = "global_instruction_s1"  # 单元 1、2
+INSTRUCTION_S2_KEY = "global_instruction_s2"  # 单元 3-6
 INSTRUCTION_S3_KEY = "global_instruction_s3"  # 修改提示词
 INSTRUCTION_G1_KEY = "global_instruction_g1"
 INSTRUCTION_G2_KEY = "global_instruction_g2"

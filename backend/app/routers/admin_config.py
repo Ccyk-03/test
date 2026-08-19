@@ -1,4 +1,4 @@
-"""管理端路由：6 个优化单元配置、全局统一调用指令 s2、LLM 模型配置的读写，需管理员权限。"""
+"""管理端路由：6 个优化单元配置、六份调用指令 s/g 系列、LLM 模型配置的读写，需管理员权限。"""
 from datetime import datetime
 
 from fastapi import APIRouter, Depends, HTTPException, status
@@ -21,11 +21,11 @@ from app.security import require_admin
 
 router = APIRouter(prefix="/api/admin", tags=["管理端-优化配置"])
 
-S1_KEY = "global_instruction_s1"  # 首次对话（单元 1）指令（通用版）
-S2_KEY = "global_instruction_s2"  # 后续对话（单元 2-6）统一调用指令（通用版）
+S1_KEY = "global_instruction_s1"  # 单元 1、2 指令（通用版）
+S2_KEY = "global_instruction_s2"  # 单元 3-6 统一调用指令（通用版）
 S3_KEY = "global_instruction_s3"  # 修改提示词指令（通用版）
-G1_KEY = "global_instruction_g1"  # 首次对话（单元 1）指令（竖屏 9:16 优化版，OpenRouter 专用）
-G2_KEY = "global_instruction_g2"  # 后续对话（单元 2-6）统一调用指令（竖屏 9:16 优化版）
+G1_KEY = "global_instruction_g1"  # 单元 1、2 指令（竖屏 9:16 优化版，OpenRouter 专用）
+G2_KEY = "global_instruction_g2"  # 单元 3-6 统一调用指令（竖屏 9:16 优化版）
 G3_KEY = "global_instruction_g3"  # 修改提示词指令（竖屏 9:16 优化版）
 
 
@@ -120,6 +120,7 @@ def _model_config_out() -> ModelConfigOut:
     return ModelConfigOut(
         platform=cfg["platform"],
         model=cfg["model"],
+        model_label=cfg["model_label"],
         base_url=cfg["base_url"],
         reasoning_enabled=cfg["reasoning_enabled"],
         api_key_masked=_mask_key(cfg["api_key"]),

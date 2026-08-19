@@ -166,11 +166,11 @@ class UnitConfigUpdate(BaseModel):
 
 
 class GlobalConfigOut(BaseModel):
-    global_instruction_s1: str          # 首次对话（单元 1）指令（通用版）
-    global_instruction_s2: str          # 后续对话（单元 2-6）统一调用指令（通用版）
+    global_instruction_s1: str          # 单元 1、2 指令（通用版）
+    global_instruction_s2: str          # 单元 3-6 统一调用指令（通用版）
     global_instruction_s3: str          # 修改提示词指令（通用版）
-    global_instruction_g1: str          # 首次对话（单元 1）指令（竖屏 9:16 优化版，OpenRouter 专用）
-    global_instruction_g2: str          # 后续对话（单元 2-6）统一调用指令（竖屏 9:16 优化版）
+    global_instruction_g1: str          # 单元 1、2 指令（竖屏 9:16 优化版，OpenRouter 专用）
+    global_instruction_g2: str          # 单元 3-6 统一调用指令（竖屏 9:16 优化版）
     global_instruction_g3: str          # 修改提示词指令（竖屏 9:16 优化版）
 
 
@@ -196,6 +196,7 @@ class PlatformPreset(BaseModel):
 class ModelConfigOut(BaseModel):
     platform: str                        # 平台 key（openai/openrouter/moonshot/zhipu/dashscope/custom）
     model: str                           # 模型名（自由填写）
+    model_label: str                     # 模型命名（默认提取供应商品牌，可自定义）
     base_url: str
     reasoning_enabled: bool              # 是否为推理模型（调用时附带 reasoning 参数）
     api_key_masked: str                  # 掩码后的 API Key（如 sk-abc***wxyz，不明文展示）
@@ -206,6 +207,7 @@ class ModelConfigOut(BaseModel):
 class ModelConfigUpdate(BaseModel):
     platform: str = Field("openai", max_length=30, description="平台 key")
     model: str = Field(..., min_length=1, max_length=200, description="模型名，自由填写")
+    model_label: str = Field("", max_length=50, description="模型命名（留空按模型名自动提取供应商）")
     base_url: str = Field("", max_length=500)
     api_key: str = Field("", max_length=500, description="留空表示不修改")
     reasoning_enabled: bool | None = Field(None, description="是否为推理模型；缺省跟随平台默认")

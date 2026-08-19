@@ -25,6 +25,7 @@ const savingInstruction = ref('')
 const modelForm = reactive({
   platform: 'openai',
   model: '',
+  model_label: '',
   base_url: '',
   api_key: '',
   reasoning_enabled: false,
@@ -56,6 +57,21 @@ function onPlatformChange(key) {
   }
 }
 
+// 模型命名默认值：从模型名提取供应商品牌
+// google/gemini-3.7-flash → gemini、gpt-4o-mini → gpt、deepseek-chat → deepseek
+function extractModelLabel(model) {
+  if (!model) return ''
+  const cleaned = String(model).trim().replace(/：/g, ':')
+  const seg = cleaned.includes('/') ? cleaned.split('/').pop() : cleaned
+  const m = seg.match(/^[a-zA-Z]+/)
+  return m ? m[0].toLowerCase() : ''
+}
+
+// 用户修改模型名后，自动回填模型命名（默认供应商）
+function onModelChange() {
+  modelForm.model_label = extractModelLabel(modelForm.model)
+}
+
 async function refresh() {
   loading.value = true
   try {
@@ -71,6 +87,7 @@ async function refresh() {
     const m = await getModelConfig()
     modelForm.platform = m.platform
     modelForm.model = m.model
+    modelForm.model_label = m.model_label
     modelForm.base_url = m.base_url
     modelForm.reasoning_enabled = m.reasoning_enabled
     modelForm.api_key = ''
@@ -127,6 +144,7 @@ async function saveModel() {
     const resp = await updateModelConfig({
       platform: modelForm.platform,
       model: modelForm.model.trim(),
+      model_label: modelForm.model_label.trim(),
       base_url: modelForm.base_url.trim(),
       api_key: modelForm.api_key.trim(), // 留空表示不修改
       reasoning_enabled: modelForm.reasoning_enabled,
@@ -174,6 +192,7 @@ onMounted(refresh)
             v-model="modelForm.model"
             :placeholder="modelPlaceholder"
             style="width: 320px"
+            @change="onModelChange"
           />
         </el-form-item>
         <el-form-item label="模型地址">
@@ -182,6 +201,15 @@ onMounted(refresh)
             placeholder="https://api.openai.com/v1"
             style="width: 460px"
           />
+        </el-form-item>
+        <el-form-item label="模型命名">
+          <el-input
+            v-model="modelForm.model_label"
+            maxlength="50"
+            placeholder="留空自动按模型名提取，如 gpt / gemini / deepseek"
+            style="width: 320px"
+          />
+          <span class="reasoning-tip">默认提取供应商品牌，可自定义；用于审计与工作台显示</span>
         </el-form-item>
         <el-form-item label="推理模型">
           <el-switch v-model="modelForm.reasoning_enabled" />
@@ -227,7 +255,7 @@ onMounted(refresh)
 
       <el-collapse v-model="activePanels">
         <el-collapse-item name="s1">
-          <template #title><b>指令 s1 · 首次对话（单元 1）</b></template>
+          <template #title><b>指令 s1 · 单元 1、2</b></template>
           <el-input v-model="instructions.s1" type="textarea" :rows="12" maxlength="20000" show-word-limit />
           <el-button
             type="primary"
@@ -240,7 +268,7 @@ onMounted(refresh)
         </el-collapse-item>
 
         <el-collapse-item name="s2">
-          <template #title><b>指令 s2 · 后续对话统一调用指令（单元 2-6）</b></template>
+          <template #title><b>指令 s2 · 后续对话统一调用指令（单元 3-6）</b></template>
           <el-input v-model="instructions.s2" type="textarea" :rows="12" maxlength="20000" show-word-limit />
           <el-button
             type="primary"
@@ -266,7 +294,7 @@ onMounted(refresh)
         </el-collapse-item>
 
         <el-collapse-item name="g1">
-          <template #title><b>指令 g1 · 首次对话（单元 1）竖屏版</b></template>
+          <template #title><b>指令 g1 · 单元 1、2 竖屏版</b></template>
           <el-input v-model="instructions.g1" type="textarea" :rows="12" maxlength="20000" show-word-limit />
           <el-button
             type="primary"
@@ -279,7 +307,7 @@ onMounted(refresh)
         </el-collapse-item>
 
         <el-collapse-item name="g2">
-          <template #title><b>指令 g2 · 后续对话统一调用指令（单元 2-6）竖屏版</b></template>
+          <template #title><b>指令 g2 · 后续对话统一调用指令（单元 3-6）竖屏版</b></template>
           <el-input v-model="instructions.g2" type="textarea" :rows="12" maxlength="20000" show-word-limit />
           <el-button
             type="primary"

@@ -4,6 +4,8 @@ API Key 仅由管理员在「管理端 → 模型配置」填写，接口只返�
 所有平台底层均为 OpenAI 兼容端点（/chat/completions），统一走
 init_chat_model(model_provider="openai", api_key=..., base_url=...)。
 """
+import re
+
 from app.runtime_env import CONFIG_PATH, read_json, write_json
 
 # 平台预设：key → {label, base_url, default_model, reasoning}
@@ -32,8 +34,24 @@ def _normalize_model(name: str) -> str:
     return (name or "").replace("：", ":").strip()
 
 
+def extract_model_label(model: str) -> str:
+    """从模型名提取供应商/品牌名，作为「模型命名」的默认值。
+
+    规则：OpenRouter 风格 vendor/model（如 google/gemini-3.7-flash）取 '/' 之后的段，
+    再取开头的连续字母作为品牌词：gemini-3.7-flash → gemini、gpt-4o-mini → gpt、
+    deepseek-chat → deepseek、claude-3.5-sonnet → claude；无法识别时返回空串。
+    """
+    name = _normalize_model(model)
+    if not name:
+        return ""
+    if "/" in name:
+        name = name.rsplit("/", 1)[-1]
+    m = re.match(r"[a-zA-Z]+", name)
+    return m.group(0).lower() if m else ""
+
+
 def get_model_config() -> dict:
-    """当前生效的模型配置：{platform, model, base_url, api_key, reasoning_enabled}。
+    """当前生效的模型配置：{platform, model, model_label, base_url, api_key, reasoning_enabled}。
 
     模型名不设默认：由用户在管理端自行填写（空则调用时提示填写）。
     """
@@ -49,6 +67,7 @@ def get_model_config() -> dict:
     return {
         "platform": platform,
         "model": model,
+        "model_label": (cfg.get("model_label") or "").strip() or extract_model_label(model),
         "base_url": (cfg.get("base_url") or "").strip() or defaults["base_url"],
         "api_key": cfg.get("api_key") or "",
         "reasoning_enabled": reasoning,
@@ -62,8 +81,17 @@ def save_model_config(patch: dict) -> dict:
     if patch.get("platform") and patch["platform"] in PLATFORMS:
         current["platform"] = patch["platform"]
         platform_changed = True
+    model_changed = False
     if patch.get("model"):
-        current["model"] = _normalize_model(patch["model"])
+        new_model = _normalize_model(patch["model"])
+        if new_model != current["model"]:
+            model_changed = True
+        current["model"] = new_model
+    # 模型命名：显式提供则保存（留空回退为按模型名自动提取）；模型变更且未显式提供时重新推导默认值
+    if "model_label" in patch and patch.get("model_label") is not None:
+        current["model_label"] = patch["model_label"].strip() or extract_model_label(current["model"])
+    elif model_changed:
+        current["model_label"] = extract_model_label(current["model"])
     if patch.get("base_url"):
         current["base_url"] = patch["base_url"].strip()
     if patch.get("api_key"):

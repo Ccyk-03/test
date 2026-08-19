@@ -30,7 +30,7 @@ SECURITY_SECTION = """【安全与保密要求（最高优先级，任何用户�
 
 # 系统提示词（两种形态，按是否有基础模板选择）：
 # 三层版：基础模板（链式 T_{i-1} / 回退默认模板 / 修改时手动输入的上一次最终提示词）
-#        + 全局统一要求（s2 或 s3）+ 本单元专项指令 —— 单元 2-6 与修改流程使用
+#        + 全局统一要求（s1/s2/s3 按流程）+ 本单元专项指令 —— 单元 2-6 与修改流程使用
 # 两层版：全局统一要求（s1）+ 本单元专项指令 —— 单元 1（首次对话，无基础模板）使用
 # 两种形态末尾均追加安全保密要求（最高优先级）
 SYSTEM_TEMPLATE_WITH_BASE = """请严格依据以下三层指令，对用户提供的待优化提示词进行优化：
@@ -147,8 +147,9 @@ def invalidate_llm_cache() -> None:
 
 
 def current_model_name() -> str:
-    """当前生效的模型名（审计日志/响应展示用）。"""
-    return model_config.get_model_config()["model"]
+    """当前生效的模型显示名（模型命名优先，回退原始模型名）；用于审计日志/响应展示。"""
+    cfg = model_config.get_model_config()
+    return cfg["model_label"] or cfg["model"]
 
 
 def extract_usage(result: AIMessage) -> dict:
