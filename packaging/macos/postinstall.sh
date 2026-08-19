@@ -21,5 +21,12 @@ EOF
 # 写入用户偏好 plist
 defaults write "$BUNDLE_ID" InstallId "$INSTALL_ID"
 
+# 在桌面创建快捷方式（符号链接指向 /Applications 里的 .app，双击即可打开，与 Windows 桌面图标体验一致）
+APP_PATH="/Applications/$APP_NAME.app"
+DESKTOP_LINK="$HOME/Desktop/$APP_NAME.app"
+if [ -e "$APP_PATH" ]; then
+  ln -sf "$APP_PATH" "$DESKTOP_LINK" 2>/dev/null || true
+fi
+
 echo "[postinstall] 安装标记已写入：$APP_SUPPORT/installed"
 exit 0
