@@ -325,11 +325,12 @@ def run_unit(
     config = _get_unit_config(db, unit_no)
     conversation_no = _resolve_conversation_no(db, user, body.conversation_no)
 
-    # 1. 调用指令：单元 1、2 使用 s1 指令；单元 3-6 使用 s2 指令
+    # 1. 调用指令：单元 1、2 使用 s1/g1 指令；单元 3-6 使用 s2/g2 指令（按模型自动切换）
+    key1, key2, _key3 = chain_state.instruction_keys()
     if unit_no <= 2:
-        global_instruction = chain_state.get_global_instruction(db, chain_state.INSTRUCTION_S1_KEY)
+        global_instruction = chain_state.get_global_instruction(db, key1)
     else:
-        global_instruction = chain_state.get_global_instruction(db, chain_state.INSTRUCTION_S2_KEY)
+        global_instruction = chain_state.get_global_instruction(db, key2)
 
     # 2. 基础模板：单元 1 无基础模板；单元 2-6 链式（同一对话内 T_{i-1} 或回退默认模板）
     if unit_no == UNIT_MIN:
@@ -412,8 +413,9 @@ def revise_unit(
             db, user.id, unit_no, conversation_no
         )
 
-    # 2. 修改流程统一使用 s3 指令
-    global_instruction = chain_state.get_global_instruction(db, chain_state.INSTRUCTION_S3_KEY)
+    # 2. 修改流程统一使用 s3/g3 指令（按模型自动切换）
+    _key1, _key2, key3 = chain_state.instruction_keys()
+    global_instruction = chain_state.get_global_instruction(db, key3)
 
     # 3. 本单元生效指令
     unit_instruction = _merge_instruction(config.unit_instruction, body.custom_instruction)

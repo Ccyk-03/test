@@ -17,6 +17,7 @@ from sqlalchemy.orm import Session
 
 from app.models import GlobalConfig, UnitConfig, User
 from app.security import hash_password
+from app.g_instructions import DEFAULT_INSTRUCTION_G1, DEFAULT_INSTRUCTION_G2, DEFAULT_INSTRUCTION_G3
 
 # ============ 专业指令体（三份文档的公共主体，源自 source/指令s1.doc） ============
 _PROFESSIONAL_BODY = """你是一名专业影视分镜导演、AI视频提示词优化师。你的任务：根据已有中文影视分镜提示词，对镜头、人物动作、空间关系、表演、台词节奏进行二次优化，使其适用于 AI 视频生成模型。
@@ -166,11 +167,16 @@ DEFAULT_INSTRUCTION_S3 = (
 # 单元默认模板（单元 1 种子基础模板；单元 i(≥2) 无链式历史时的回退模板）= 专业指令体
 BASE_TEMPLATE = _PROFESSIONAL_BODY
 
-# 三份指令的全局配置键 → 默认文本
+# 六份指令的全局配置键 → 默认文本
+# s1/s2/s3：通用版（ai.klinkw.com 及其他模型使用）
+# g1/g2/g3：竖屏 9:16 优化版（OpenRouter 模型使用）
 GLOBAL_INSTRUCTIONS = {
     "global_instruction_s1": DEFAULT_INSTRUCTION_S1,
     "global_instruction_s2": DEFAULT_INSTRUCTION_S2,
     "global_instruction_s3": DEFAULT_INSTRUCTION_S3,
+    "global_instruction_g1": DEFAULT_INSTRUCTION_G1,
+    "global_instruction_g2": DEFAULT_INSTRUCTION_G2,
+    "global_instruction_g3": DEFAULT_INSTRUCTION_G3,
 }
 
 # 6 个优化单元（6 个连续镜头/对话）的默认配置：(单元号, 名称, 默认模板, 单元指令)

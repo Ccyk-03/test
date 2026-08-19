@@ -92,3 +92,15 @@ def list_platforms() -> list[dict]:
         }
         for k, v in PLATFORMS.items()
     ]
+
+
+def get_instruction_prefix() -> str:
+    """根据当前模型的 base_url 返回指令集前缀。
+
+    返回 'g'（OpenRouter → 使用 g1/g2/g3 竖屏版指令）或 's'（其他 → 使用 s1/s2/s3 通用版指令）。
+    """
+    cfg = get_model_config()
+    base_url = (cfg.get("base_url") or "").lower()
+    if "openrouter" in base_url:
+        return "g"
+    return "s"

@@ -166,15 +166,21 @@ class UnitConfigUpdate(BaseModel):
 
 
 class GlobalConfigOut(BaseModel):
-    global_instruction_s1: str          # 首次对话（单元 1）指令
-    global_instruction_s2: str          # 后续对话（单元 2-6）统一调用指令
-    global_instruction_s3: str          # 修改提示词指令
+    global_instruction_s1: str          # 首次对话（单元 1）指令（通用版）
+    global_instruction_s2: str          # 后续对话（单元 2-6）统一调用指令（通用版）
+    global_instruction_s3: str          # 修改提示词指令（通用版）
+    global_instruction_g1: str          # 首次对话（单元 1）指令（竖屏 9:16 优化版，OpenRouter 专用）
+    global_instruction_g2: str          # 后续对话（单元 2-6）统一调用指令（竖屏 9:16 优化版）
+    global_instruction_g3: str          # 修改提示词指令（竖屏 9:16 优化版）
 
 
 class GlobalConfigUpdate(BaseModel):
     global_instruction_s1: str | None = Field(None, max_length=20000)
     global_instruction_s2: str | None = Field(None, max_length=20000)
     global_instruction_s3: str | None = Field(None, max_length=20000)
+    global_instruction_g1: str | None = Field(None, max_length=20000)
+    global_instruction_g2: str | None = Field(None, max_length=20000)
+    global_instruction_g3: str | None = Field(None, max_length=20000)
 
 
 # ---------- 管理端：LLM 模型配置（GPT 接口预留） ----------

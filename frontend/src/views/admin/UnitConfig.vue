@@ -17,8 +17,8 @@ const loading = ref(false)
 const savingUnit = ref(0)     // 正在保存的单元号
 const activePanels = ref([])  // 折叠面板展开状态
 
-// 三份调用指令 s1/s2/s3
-const instructions = reactive({ s1: '', s2: '', s3: '' })
+// 六份调用指令：s1/s2/s3（通用版）+ g1/g2/g3（竖屏 9:16 优化版，OpenRouter 专用）
+const instructions = reactive({ s1: '', s2: '', s3: '', g1: '', g2: '', g3: '' })
 const savingInstruction = ref('')
 
 // LLM 模型配置（多平台 OpenAI 兼容）
@@ -64,6 +64,9 @@ async function refresh() {
     instructions.s1 = g.global_instruction_s1
     instructions.s2 = g.global_instruction_s2
     instructions.s3 = g.global_instruction_s3
+    instructions.g1 = g.global_instruction_g1
+    instructions.g2 = g.global_instruction_g2
+    instructions.g3 = g.global_instruction_g3
 
     const m = await getModelConfig()
     modelForm.platform = m.platform
@@ -104,6 +107,9 @@ async function saveInstruction(key) {
       global_instruction_s1: instructions.s1,
       global_instruction_s2: instructions.s2,
       global_instruction_s3: instructions.s3,
+      global_instruction_g1: instructions.g1,
+      global_instruction_g2: instructions.g2,
+      global_instruction_g3: instructions.g3,
     })
     ElMessage.success(`指令 ${key.toUpperCase()} 已保存，之后每轮调用立即生效`)
   } finally {
@@ -206,14 +212,14 @@ onMounted(refresh)
       </el-form>
     </el-card>
 
-    <!-- 三份调用指令 s1/s2/s3 -->
+    <!-- 六份调用指令 s1/s2/s3（通用版）+ g1/g2/g3（竖屏优化版） -->
     <el-card shadow="never" class="config-card">
       <template #header>
         <div class="card-header">
           <div>
-            <span>三份调用指令配置</span>
+            <span>调用指令配置</span>
             <div class="header-tip">
-              s1：首次对话（单元 1）使用 · s2：后续对话（单元 2-6）统一调用指令 · s3：修改提示词使用
+              s1/s2/s3 通用版（ai.klinkw.com 等模型使用）· g1/g2/g3 竖屏 9:16 优化版（OpenRouter 模型使用，自动切换）
             </div>
           </div>
         </div>
@@ -256,6 +262,45 @@ onMounted(refresh)
             @click="saveInstruction('s3')"
           >
             保存指令 s3
+          </el-button>
+        </el-collapse-item>
+
+        <el-collapse-item name="g1">
+          <template #title><b>指令 g1 · 首次对话（单元 1）竖屏版</b></template>
+          <el-input v-model="instructions.g1" type="textarea" :rows="12" maxlength="20000" show-word-limit />
+          <el-button
+            type="primary"
+            class="ins-save"
+            :loading="savingInstruction === 'g1'"
+            @click="saveInstruction('g1')"
+          >
+            保存指令 g1
+          </el-button>
+        </el-collapse-item>
+
+        <el-collapse-item name="g2">
+          <template #title><b>指令 g2 · 后续对话统一调用指令（单元 2-6）竖屏版</b></template>
+          <el-input v-model="instructions.g2" type="textarea" :rows="12" maxlength="20000" show-word-limit />
+          <el-button
+            type="primary"
+            class="ins-save"
+            :loading="savingInstruction === 'g2'"
+            @click="saveInstruction('g2')"
+          >
+            保存指令 g2
+          </el-button>
+        </el-collapse-item>
+
+        <el-collapse-item name="g3">
+          <template #title><b>指令 g3 · 修改提示词（修改对话框流程）竖屏版</b></template>
+          <el-input v-model="instructions.g3" type="textarea" :rows="12" maxlength="20000" show-word-limit />
+          <el-button
+            type="primary"
+            class="ins-save"
+            :loading="savingInstruction === 'g3'"
+            @click="saveInstruction('g3')"
+          >
+            保存指令 g3
           </el-button>
         </el-collapse-item>
       </el-collapse>

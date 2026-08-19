@@ -10,6 +10,11 @@ const store = useUserStore()
 function backHome() {
   router.push('/')
 }
+
+function logout() {
+  store.logout()
+  router.push('/login')
+}
 </script>
 
 <template>
@@ -35,6 +40,7 @@ function backHome() {
         <div class="header-right">
           <span class="header-user">{{ store.username }}（管理员）</span>
           <el-button type="primary" plain size="small" @click="backHome">返回系统主界面</el-button>
+          <el-button type="danger" plain size="small" @click="logout">退出登录</el-button>
         </div>
       </el-header>
       <el-main class="layout-main">

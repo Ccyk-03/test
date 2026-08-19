@@ -13,10 +13,27 @@ from sqlalchemy.orm import Session
 
 from app.models import AuditLog, GlobalConfig, UnitConfig
 
-# 三份调用指令的配置键（管理端可编辑）
+# 调用指令的配置键（管理端可编辑）：s 系列 = 通用版，g 系列 = 竖屏 9:16 优化版（OpenRouter 专用）
 INSTRUCTION_S1_KEY = "global_instruction_s1"  # 首次对话（单元 1）
 INSTRUCTION_S2_KEY = "global_instruction_s2"  # 后续对话（单元 2-6）
 INSTRUCTION_S3_KEY = "global_instruction_s3"  # 修改提示词
+INSTRUCTION_G1_KEY = "global_instruction_g1"
+INSTRUCTION_G2_KEY = "global_instruction_g2"
+INSTRUCTION_G3_KEY = "global_instruction_g3"
+
+
+def instruction_keys() -> tuple[str, str, str]:
+    """返回当前模型应使用的三份指令的配置键。
+
+    根据当前模型 base_url 自动切换：
+    - OpenRouter → g1/g2/g3（竖屏优化版）
+    - 其他（ai.klinkw.com 等）→ s1/s2/s3（通用版）
+    """
+    from app import model_config
+
+    if model_config.get_instruction_prefix() == "g":
+        return INSTRUCTION_G1_KEY, INSTRUCTION_G2_KEY, INSTRUCTION_G3_KEY
+    return INSTRUCTION_S1_KEY, INSTRUCTION_S2_KEY, INSTRUCTION_S3_KEY
 
 
 def resolve_base_template(db: Session, user_id: int, unit_no: int, conversation_no: int) -> tuple[str, str, int | None]:

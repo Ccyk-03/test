@@ -21,9 +21,12 @@ from app.security import require_admin
 
 router = APIRouter(prefix="/api/admin", tags=["管理端-优化配置"])
 
-S1_KEY = "global_instruction_s1"  # 首次对话（单元 1）指令
-S2_KEY = "global_instruction_s2"  # 后续对话（单元 2-6）统一调用指令
-S3_KEY = "global_instruction_s3"  # 修改提示词指令
+S1_KEY = "global_instruction_s1"  # 首次对话（单元 1）指令（通用版）
+S2_KEY = "global_instruction_s2"  # 后续对话（单元 2-6）统一调用指令（通用版）
+S3_KEY = "global_instruction_s3"  # 修改提示词指令（通用版）
+G1_KEY = "global_instruction_g1"  # 首次对话（单元 1）指令（竖屏 9:16 优化版，OpenRouter 专用）
+G2_KEY = "global_instruction_g2"  # 后续对话（单元 2-6）统一调用指令（竖屏 9:16 优化版）
+G3_KEY = "global_instruction_g3"  # 修改提示词指令（竖屏 9:16 优化版）
 
 
 @router.get("/units", response_model=list[UnitConfigOut])
@@ -54,22 +57,28 @@ def update_unit_config(
 
 @router.get("/global", response_model=GlobalConfigOut)
 def get_global_config(admin: User = Depends(require_admin), db: Session = Depends(get_db)):
-    """读取三份调用指令 s1（首次对话）/ s2（后续对话）/ s3（修改提示词）。"""
+    """读取六份调用指令 s1/s2/s3（通用版）与 g1/g2/g3（竖屏优化版）。"""
     rows = {row.key: row.value for row in db.query(GlobalConfig).all()}
     return GlobalConfigOut(
         global_instruction_s1=rows.get(S1_KEY, ""),
         global_instruction_s2=rows.get(S2_KEY, ""),
         global_instruction_s3=rows.get(S3_KEY, ""),
+        global_instruction_g1=rows.get(G1_KEY, ""),
+        global_instruction_g2=rows.get(G2_KEY, ""),
+        global_instruction_g3=rows.get(G3_KEY, ""),
     )
 
 
 @router.put("/global", response_model=GlobalConfigOut)
 def update_global_config(body: GlobalConfigUpdate, admin: User = Depends(require_admin), db: Session = Depends(get_db)):
-    """更新调用指令（s1/s2/s3 任一字段，None 表示不修改；对之后每一轮生效）。"""
+    """更新调用指令（s/g 系列任一字段，None 表示不修改；对之后每一轮生效）。"""
     updates = {
         S1_KEY: body.global_instruction_s1,
         S2_KEY: body.global_instruction_s2,
         S3_KEY: body.global_instruction_s3,
+        G1_KEY: body.global_instruction_g1,
+        G2_KEY: body.global_instruction_g2,
+        G3_KEY: body.global_instruction_g3,
     }
     rows = {row.key: row for row in db.query(GlobalConfig).all()}
     for key, value in updates.items():
@@ -89,6 +98,9 @@ def update_global_config(body: GlobalConfigUpdate, admin: User = Depends(require
         global_instruction_s1=rows.get(S1_KEY, ""),
         global_instruction_s2=rows.get(S2_KEY, ""),
         global_instruction_s3=rows.get(S3_KEY, ""),
+        global_instruction_g1=rows.get(G1_KEY, ""),
+        global_instruction_g2=rows.get(G2_KEY, ""),
+        global_instruction_g3=rows.get(G3_KEY, ""),
     )
 
 
