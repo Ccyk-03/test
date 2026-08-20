@@ -48,7 +48,7 @@ async function handleLogin() {
           </el-input>
         </el-form-item>
         <el-form-item prop="password">
-          <el-input v-model="form.password" type="password" placeholder="密码" show-password>
+          <el-input v-model="form.password" type="password" placeholder="密码">
             <template #prefix>🔒</template>
           </el-input>
         </el-form-item>

@@ -219,7 +219,6 @@ onMounted(refresh)
           <el-input
             v-model="modelForm.api_key"
             type="password"
-            show-password
             :placeholder="hasApiKey ? `已配置：${modelMasked}（留空表示不修改）` : '请输入 API Key'"
             style="width: 460px"
           />

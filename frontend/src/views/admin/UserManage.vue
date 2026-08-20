@@ -136,7 +136,7 @@ onMounted(refresh)
           <el-input v-model="createForm.username" placeholder="2-50 位" />
         </el-form-item>
         <el-form-item label="密码" prop="password">
-          <el-input v-model="createForm.password" type="password" show-password placeholder="至少 6 位" />
+          <el-input v-model="createForm.password" type="password" placeholder="至少 6 位" />
         </el-form-item>
         <el-form-item label="角色" prop="role">
           <el-radio-group v-model="createForm.role">
@@ -158,7 +158,6 @@ onMounted(refresh)
       <el-input
         v-model="resetForm.password"
         type="password"
-        show-password
         placeholder="输入新密码（至少 6 位）"
       />
       <template #footer>
