@@ -2,8 +2,7 @@
 ; 抽卡师的魔法 - NSIS 安装脚本
 ; 编译（WSL 内）：makensis -DPRODUCT_VERSION=1.0.0 -DINPUT_STAGING=build/staging installer.nsi
 ; 安装布局：$LOCALAPPDATA\Programs\PromptOpt（免管理员权限）
-; 防拷贝机制：写入用户环境变量 PROMPT_OPT_INSTALLED / PROMPT_OPT_HOME
-;             + 注册表 InstallId + 安装目录 .installed 标记
+; 无防拷贝校验：仅写入 .installed 安装标记（用于程序判断安装版路径）
 ; ============================================================
 Unicode true
 !include "MUI2.nsh"
@@ -46,7 +45,6 @@ ShowUninstDetails show
 !insertmacro MUI_LANGUAGE "SimpChinese"
 
 ; ---------------- 变量 ----------------
-Var InstallId
 
 ; ============================================================
 ; 安装
@@ -59,26 +57,10 @@ Section "Install"
   File /r "${INPUT_STAGING}\backend"
   File /r "${INPUT_STAGING}\frontend"
 
-  ; 2. 生成安装标识（防拷贝第二因子）并写入标记文件
-  ; 两次 GetTickCount 拼接作为安装随机标识（此版 NSIS 无 $RANDOM 变量）
-  System::Call 'Kernel32::GetTickCount()i.r0'
-  StrCpy $InstallId "$0"
-  Sleep 1
-  System::Call 'Kernel32::GetTickCount()i.r1'
-  StrCpy $InstallId "$InstallId$1"
-  ${GetTime} "" "L" $0 $1 $2 $3 $4 $5 $6
+  ; 2. 写入安装标记文件（用于程序判断「安装版」路径，不做防拷贝校验）
   FileOpen $7 "$INSTDIR\.installed" w
-  FileWrite $7 '{"install_id":"$InstallId","installed_at":"$0-$1-$2 $3:$4:$5"}'
+  FileWrite $7 '{"installed":true}'
   FileClose $7
-  WriteRegStr HKCU "${APP_REG_KEY}" "InstallId" "$InstallId"
-
-  ; 4. 写入用户环境变量（防拷贝第一因子）
-  WriteRegExpandStr HKCU "Environment" "PROMPT_OPT_INSTALLED" "1"
-  WriteRegExpandStr HKCU "Environment" "PROMPT_OPT_HOME" "$INSTDIR"
-  SendMessage ${HWND_BROADCAST} ${WM_SETTINGCHANGE} 0 "STR:Environment" /TIMEOUT=5000
-  ; 当前安装器进程内立即生效（供「完成后运行」的子进程继承）
-  System::Call 'Kernel32::SetEnvironmentVariableA(t,t) i("PROMPT_OPT_INSTALLED","1").r0'
-  System::Call 'Kernel32::SetEnvironmentVariableA(t,t) i("PROMPT_OPT_HOME","$INSTDIR").r0'
 
   ; 5. 快捷方式（pythonw.exe 无控制台窗口启动；起始目录设为 backend）
   SetOutPath "$INSTDIR\backend"
@@ -109,12 +91,6 @@ Section "Uninstall"
   Delete "$DESKTOP\抽卡师的魔法.lnk"
   RMDir /r "$SMPROGRAMS\抽卡师的魔法"
 
-  ; 删除用户环境变量（防拷贝标记）
-  DeleteRegValue HKCU "Environment" "PROMPT_OPT_INSTALLED"
-  DeleteRegValue HKCU "Environment" "PROMPT_OPT_HOME"
-  SendMessage ${HWND_BROADCAST} ${WM_SETTINGCHANGE} 0 "STR:Environment" /TIMEOUT=5000
-
-  DeleteRegKey HKCU "${APP_REG_KEY}"
   DeleteRegKey HKCU "Software\Microsoft\Windows\CurrentVersion\Uninstall\PromptOpt"
 
   RMDir /r "$INSTDIR"
@@ -126,7 +102,7 @@ SectionEnd
 ; 初始化：检测重复安装 + 初始化模型变量（静默安装 /S 时页面被跳过，仍写入正确配置）
 ; ============================================================
 Function .onInit
-  ReadRegStr $0 HKCU "${APP_REG_KEY}" "InstallId"
+  ReadRegStr $0 HKCU "Software\Microsoft\Windows\CurrentVersion\Uninstall\PromptOpt" "InstallLocation"
   ${If} $0 != ""
     MessageBox MB_ICONEXCLAMATION "检测到本系统已安装。请先通过开始菜单「卸载」或「设置 → 应用」卸载后重新安装。"
     Abort

@@ -1,4 +1,4 @@
-"""运行时环境判定与路径推导 + 防拷贝安装校验（guard）。
+"""运行时环境判定与路径推导（Windows 端防拷贝校验已移除，macOS 端保留）。
 
 支持两种平台布局：
 1. Windows 安装版（NSIS 安装包）：
@@ -21,13 +21,8 @@
        ~/Library/Preferences/com.gacha.magic.plist   （defaults 存 InstallId）
 3. 开发版（源码运行）：无标记 → guard 完全跳过，路径保持 backend/data。
 
-防拷贝机制（三重校验，仅安装模式生效，按平台）：
-  Windows：① 环境变量 PROMPT_OPT_INSTALLED=1  ② PROMPT_OPT_HOME 指向安装目录
-           ③ 注册表 InstallId == .installed 标记文件的 install_id
-  macOS：  ① 标记文件 ~/Library/Application Support/…/installed 存在
-           ② plist 里的 InstallId == 标记文件里的 install_id
-           ③ 程序运行路径在 .app 包内（且 .app 位于 /Applications）
-说明：该机制用于阻止「直接拷贝文件夹/应用运行」；对有意技术破解不设防。
+说明：Windows 端已移除防拷贝校验（可直接拷贝运行）；
+macOS 端仍保留原防拷贝校验（标记文件 + plist InstallId + .app 路径）。
 """
 import json
 import os
@@ -214,14 +209,13 @@ def _guard_mac() -> None:
 
 
 def guard() -> None:
-    """防拷贝安装校验：仅安装模式（存在标记）执行；开发模式直接放行。"""
+    """防拷贝安装校验：Windows 端已移除（直接放行）；macOS 端保留原校验。"""
     if not IS_INSTALLED:
         return
     if _IS_MAC:
         _guard_mac()
-    else:
-        _guard_windows()
+    # Windows 端：防拷贝校验已移除，直接放行
 
 
-# 导入即校验：拦截一切未通过安装包的启动方式
+# 导入即校验：Windows 端放行，macOS 端校验
 guard()

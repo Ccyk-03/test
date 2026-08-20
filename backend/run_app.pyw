@@ -32,14 +32,27 @@ APP_URL = f"http://{APP_HOST}:{APP_PORT}"
 
 
 def _bootstrap_config() -> None:
-    """首次启动引导：确保 config.json 存在，并生成随机 JWT 密钥。"""
+    """首次启动引导：确保 config.json 存在，生成随机 JWT 密钥，并写入默认模型配置。"""
     if not runtime_env.IS_INSTALLED:
         return
     cfg = runtime_env.read_json(runtime_env.CONFIG_PATH)
+    changed = False
     if not cfg.get("jwt_secret"):
         cfg["jwt_secret"] = secrets.token_hex(32)
+        changed = True
+    if not cfg.get("platform"):
+        cfg["platform"] = "openrouter"
+        changed = True
+    if not cfg.get("model"):
+        cfg["model"] = "google/gemini-3.7-flash"
+        changed = True
+    # api_key 为密钥，不写入源码；由「一键导入配置」工具或管理端「模型配置」填写
+    if "reasoning_enabled" not in cfg:
+        cfg["reasoning_enabled"] = False
+        changed = True
+    if changed:
         runtime_env.write_json(runtime_env.CONFIG_PATH, cfg)
-        logging.info("已生成随机 JWT 密钥")
+        logging.info("已生成默认配置")
 
 
 def _setup_logging() -> None:
