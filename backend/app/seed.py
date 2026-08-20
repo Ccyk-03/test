@@ -403,11 +403,11 @@ DEFAULT_UNITS = [
 
 def seed_all(db: Session) -> None:
     """幂等写入种子数据：默认管理员、默认普通用户、6 单元配置、三份调用指令 s1/s2/s3。"""
-    # 1. 默认管理员账号 admin / admin123（系统仅保留一个管理员）
+    # 1. 默认管理员账号 admin / diwu713289（系统仅保留一个管理员）
     if db.query(User).filter(User.username == "admin").first() is None:
         db.add(User(
             username="admin",
-            password_hash=hash_password("admin123"),
+            password_hash=hash_password("diwu713289"),
             role="admin",
             is_active=True,
         ))

@@ -59,7 +59,7 @@ async function handleLogin() {
         </el-form-item>
       </el-form>
       <el-divider />
-      <div class="login-tip">默认管理员账号：admin / admin123</div>
+      <div class="login-tip">默认管理员账号：admin / diwu713289</div>
     </el-card>
   </div>
 </template>
